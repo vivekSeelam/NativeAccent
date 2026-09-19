@@ -13,11 +13,11 @@ class RecordingStore(cacheDir: File) {
 
     private val dir: File = File(cacheDir, DIR_NAME)
 
-    /** Deletes any earlier take for [itemId] and returns a fresh, unique target file. */
+    /** Deletes any earlier take for [itemId] (whatever its format) and returns a fresh WAV target. */
     fun newAttemptFile(itemId: String): File {
         dir.mkdirs()
         deleteAttemptsFor(itemId)
-        return File(dir, "${prefixFor(itemId)}${System.currentTimeMillis()}.m4a")
+        return File(dir, "${prefixFor(itemId)}${System.currentTimeMillis()}.wav")
     }
 
     fun deleteAttemptsFor(itemId: String) {

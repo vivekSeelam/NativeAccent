@@ -20,3 +20,8 @@ val TextMuted = Color(0xFF6F677F)
 
 /** Primary mic button fill: pink into orange, top-left to bottom-right. */
 val MicGradient = Brush.linearGradient(listOf(AccentPink, AccentOrange))
+
+// Score bands: green >= 80, yellow 60..79, red < 60.
+val ScoreGood = Color(0xFF34D399)
+val ScoreFair = Color(0xFFFBBF24)
+val ScorePoor = Color(0xFFF87171)

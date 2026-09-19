@@ -14,8 +14,7 @@
     <string name="cd_coach">Play coach pronunciation</string>
     <string name="cd_you">Play your recording</string>
 
-    <string name="coach_practice_prompt">Try saying the word below.</string>
-    <string name="coach_compare_prompt">Nice — now compare.</string>
+    <string name="coach_practice_prompt">Try saying the sentence below.</string>
 
     <string name="btn_coach">Coach</string>
     <string name="btn_you">You</string>

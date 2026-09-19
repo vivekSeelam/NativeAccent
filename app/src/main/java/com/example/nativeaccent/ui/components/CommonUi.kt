@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -160,6 +161,7 @@ fun MicButton(
     isRecording: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    enabled: Boolean = true,
     size: Dp = 80.dp,
 ) {
     val transition = rememberInfiniteTransition(label = "mic-pulse")
@@ -171,7 +173,9 @@ fun MicButton(
     )
 
     Box(
-        modifier = modifier.size(size + 24.dp),
+        modifier = modifier
+            .size(size + 24.dp)
+            .alpha(if (enabled) 1f else 0.35f),
         contentAlignment = Alignment.Center,
     ) {
         if (isRecording) {
@@ -191,7 +195,7 @@ fun MicButton(
                 .background(MicGradient),
             contentAlignment = Alignment.Center,
         ) {
-            IconButton(onClick = onClick, modifier = Modifier.size(size)) {
+            IconButton(onClick = onClick, enabled = enabled, modifier = Modifier.size(size)) {
                 Icon(
                     painter = painterResource(
                         if (isRecording) R.drawable.ic_stop else R.drawable.ic_mic

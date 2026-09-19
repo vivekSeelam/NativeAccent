@@ -1,7 +1,19 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
 }
+
+// Azure Speech credentials come from local.properties, which is gitignored, so the
+// key never lands in source control. Missing values compile to "" and the app shows
+// "scoring isn't set up" instead of crashing.
+val localProperties = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.isFile }?.inputStream()?.use(::load)
+}
+
+fun localProperty(name: String): String =
+    localProperties.getProperty(name, "").replace("\\", "\\\\").replace("\"", "\\\"")
 
 android {
     namespace = "com.example.nativeaccent"
@@ -19,6 +31,9 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "AZURE_SPEECH_KEY", "\"${localProperty("AZURE_SPEECH_KEY")}\"")
+        buildConfigField("String", "AZURE_SPEECH_REGION", "\"${localProperty("AZURE_SPEECH_REGION")}\"")
     }
 
     compileOptions {
@@ -28,6 +43,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 }
 
@@ -44,8 +60,11 @@ dependencies {
     implementation(libs.androidx.compose.ui.graphics)
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.azure.speech)
 
     testImplementation(libs.junit)
+    // Android's org.json is a stub under JVM unit tests; this is the real implementation.
+    testImplementation(libs.org.json)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.espresso.core)

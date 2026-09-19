@@ -1,9 +1,11 @@
 package com.example.nativeaccent.ui
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,9 +14,14 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +42,7 @@ import com.example.nativeaccent.ui.theme.Ink
 import com.example.nativeaccent.ui.theme.TextMuted
 import com.example.nativeaccent.ui.theme.TextPrimary
 import com.example.nativeaccent.ui.theme.TextSecondary
+import com.example.nativeaccent.viewmodel.AnalysisStatus
 import com.example.nativeaccent.viewmodel.PracticeUiState
 
 /**
@@ -52,6 +60,8 @@ fun PracticeScreen(
     onPermissionDenied: () -> Unit,
     onPrevious: () -> Unit,
     onCamera: () -> Unit,
+    onRetryAnalysis: () -> Unit,
+    onCompareWithoutScore: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val micPermission = rememberMicPermission(
@@ -131,14 +141,14 @@ fun PracticeScreen(
 
             Spacer(Modifier.height(24.dp))
 
-            Text(
-                text = state.message ?: if (state.isRecording) "Listening…" else "Tap the mic when you are ready",
-                style = MaterialTheme.typography.bodyMedium,
-                color = if (state.message != null) AccentPink else TextSecondary,
-                textAlign = TextAlign.Center,
-                // Reserved so the layout does not jump when the status changes.
-                modifier = Modifier.heightIn(min = 40.dp),
-            )
+            // Min height reserved so the layout does not jump as the status changes.
+            Box(Modifier.heightIn(min = 88.dp), contentAlignment = Alignment.TopCenter) {
+                PracticeStatus(
+                    state = state,
+                    onRetry = onRetryAnalysis,
+                    onCompareWithoutScore = onCompareWithoutScore,
+                )
+            }
         }
 
         BottomControlRow(
@@ -155,6 +165,7 @@ fun PracticeScreen(
                 MicButton(
                     isRecording = state.isRecording,
                     onClick = { micPermission.request() },
+                    enabled = !state.isAnalyzing,
                 )
             },
             end = {
@@ -167,3 +178,57 @@ fun PracticeScreen(
         )
     }
 }
+
+/** Recording / analyzing / retake / failure line under the prompt. */
+@Composable
+private fun PracticeStatus(
+    state: PracticeUiState,
+    onRetry: () -> Unit,
+    onCompareWithoutScore: () -> Unit,
+) {
+    val analysis = state.analysis
+    when {
+        state.isRecording -> StatusText("Listening…", TextSecondary)
+
+        analysis == AnalysisStatus.Analyzing -> Row(verticalAlignment = Alignment.CenterVertically) {
+            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = AccentPink)
+            Spacer(Modifier.width(10.dp))
+            StatusText("Analyzing…", TextSecondary)
+        }
+
+        analysis is AnalysisStatus.NeedsRetake -> StatusText(analysis.message, AccentPink)
+
+        analysis is AnalysisStatus.Failed -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            StatusText(analysis.message, AccentPink)
+            Spacer(Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                if (analysis.canRetry) {
+                    OutlinedButton(
+                        onClick = onRetry,
+                        border = BorderStroke(1.dp, AccentPink),
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentPink),
+                    ) { Text("Retry") }
+                    Spacer(Modifier.width(8.dp))
+                }
+                TextButton(onClick = onCompareWithoutScore) {
+                    Text("Compare without score", color = TextSecondary)
+                }
+            }
+        }
+
+        state.message != null -> StatusText(state.message, AccentPink)
+
+        else -> StatusText("Tap the mic and read the sentence", TextSecondary)
+    }
+}
+
+@Composable
+private fun StatusText(text: String, color: Color) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        color = color,
+        textAlign = TextAlign.Center,
+    )
+}
+
