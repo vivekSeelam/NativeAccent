@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Recordings live in the cache dir and are deliberately never backed up. -->
+</full-backup-content>
